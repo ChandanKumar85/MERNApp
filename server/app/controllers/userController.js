@@ -2,9 +2,9 @@ const User = require("../models/user.model");
 
 // Create and Save a new User
 const addUser = (req, res) => {
-    const { name, email, phone, password, confirmPassword } = req.body;
+    const { name, email, phone, password } = req.body;
     let userData = new User({
-        name, email, phone, password, confirmPassword
+        name, email, phone, password
     });
     userData.save().then((result) => {
         res.status(201).json({
@@ -42,7 +42,7 @@ const getUser = (req, res) => {
 const updateUser = (req, res) => {
     const userId = req.body.id;
     const updateData = req.body;
-    User.findByIdAndUpdate(userId, updateData, { new: true }).then((result) => {
+    User.findByIdAndUpdate(userId, updateData).then((result) => {
         if (result) {
             res.status(200).json({
                 status: 1,

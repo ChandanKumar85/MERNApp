@@ -1,10 +1,12 @@
 const express = require('express');
 const { addUser, getUser, deleteUser, updateUser } = require('../controllers/userController');
+// const validatePassword = require('../middleware/validatePassword');
+const hashPassword = require('../middleware/hashPassword');
 const userRoute = express.Router();
 
-userRoute.get('/users', getUser);
-userRoute.post('/users', addUser);
-userRoute.delete('/users', deleteUser);
-userRoute.put('/users', updateUser);
+userRoute.post('/', hashPassword, addUser); // Create user
+userRoute.get('/', getUser);    // Get users
+userRoute.delete('/', deleteUser);  // Delete user
+userRoute.put('/', hashPassword, updateUser); // Update user
 
 module.exports = userRoute;
