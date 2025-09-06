@@ -1,52 +1,30 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const userRoute = require('./app/routes/userRoute');
+const connectDB = require('./app/config/db');
+
+// Load environment variables from .env file
 require('dotenv').config();
 
-const app = express();
+// Set the port from environment variable or default to 5000
 const PORT = process.env.PORT || 5000;
-const DB_CRID = process.env.DATABASE_URL.replace(
-  '<PASSWORD>',
-  process.env.DATABASE_PASSWORD
-);
+
+// Initialize Express app
+const app = express();
 
 // Middleware to parse JSON requests
 app.use(express.json());
 
 // Routes
-app.use('/api/v1', userRoute)
+app.use('/api/v1/users', userRoute)
 
-// Connect to MongoDB
-mongoose.connect(DB_CRID).then(() => {
-    console.log('Connected to MongoDB');
-    // Start the server after successful DB connection
+
+// Connect to DB first, then start server
+connectDB().then(() => {
     app.listen(PORT, () => {
         console.log(`Server is running on port ${PORT}`);
     });
 }).catch(err => {
     console.error('Error connecting to MongoDB:', err);
+    process.exit(1);
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Basic route
-// app.post('/api/v1/users', (req, res)=>{
-//     res.send("User route");
-// });
