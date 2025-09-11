@@ -13,7 +13,7 @@ const RegisterPage = () => {
         </div>
         <p className="text-center text-sm text-gray-600 mt-4">
           Already have an account?{' '}
-          <Link to="/auth/login" className="font-medium text-gray-900 hover:underline">
+          <Link to="/login" className="font-medium text-gray-900 hover:underline">
             Sign in
           </Link>
         </p>

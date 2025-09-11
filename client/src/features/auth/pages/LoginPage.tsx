@@ -14,12 +14,12 @@ const LoginPage = () => {
         </div>
         <p className="text-center text-sm text-gray-600 mt-4">
           Don't have an account?{' '}
-          <Link to="/auth/register" className="font-medium text-gray-900 hover:underline">
+          <Link to="/register" className="font-medium text-gray-900 hover:underline">
             Create one
           </Link>
         </p>
         <p className="text-center text-sm text-gray-600 mt-4">
-          <Link to="/auth/forgot-password" className="font-medium text-gray-900 hover:underline">
+          <Link to="/forgot-password" className="font-medium text-gray-900 hover:underline">
             Forgot Password?
           </Link>
         </p>
