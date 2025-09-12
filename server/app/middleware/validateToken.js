@@ -4,6 +4,7 @@ const User = require('../models/user.model');
 const validateToken = async (req, res, next) => {
   try {
     const token = req.body.accessToken || req.headers['authorization'];
+    const uId = req.body.id;
 
     if (!token) {
       return res.status(401).json({
@@ -40,7 +41,7 @@ const validateToken = async (req, res, next) => {
     }
 
     // Step 2: Fetch user from DB
-    const dbUser = await User.findById(decodedReq.id);
+    const dbUser = await User.findById(uId);
     if (!dbUser || !dbUser.token) {
       return res.status(401).json({
         status: 0,
@@ -76,7 +77,7 @@ const validateToken = async (req, res, next) => {
 
     // Attach user info
     req.user = {
-      id: decodedReq.id,
+      id: uId,
       randomId: decodedReq.randomId,
       role: decodedReq.role,
     };
