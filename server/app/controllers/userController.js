@@ -79,7 +79,7 @@ const loginUser = async (req, res) => {
 
     // Access token
     const randomId = crypto.randomUUID();
-    const accessToken = GenerateToken({ randomId: randomId, role: user.role }, { expiresIn: process.env.ACCESS_TOKEN_EXPIRE_IN, issuer: process.env.APP_NAME });
+    const accessToken = GenerateToken({ id: user._id, randomId: randomId, role: user.role }, { expiresIn: process.env.ACCESS_TOKEN_EXPIRE_IN, issuer: process.env.APP_NAME });
 
     // Refresh token
     const refreshToken = GenerateRefreshToken({ id: user._id }, { expiresIn: process.env.REFRESH_TOKEN_EXPIRE_IN, issuer: process.env.APP_NAME });
@@ -244,76 +244,28 @@ const logout = async (req, res) => {
 // Generate Refresh Token
 const refreshToken = async (req, res) => {
   try {
-    const { id, refreshToken } = req.body;
+    const { id, accessToken, refreshToken } = req.user;
 
-    if (!refreshToken) {
+    if (!accessToken) {
       return res.status(401).json({
         status: 0,
         message: "NO_TOKEN_PROVIDED",
       });
     }
 
-    // Verify refresh token
-    jwt.verify(
-      refreshToken,
-      process.env.REFRESH_TOKEN_JWT_SECRET,
-      async (err, decoded) => {
-        if (err) {
-          return res.status(403).json({
-            status: 0,
-            message: "INVALID_REFRESH_TOKEN",
-          });
-        }
+    // Update user record with new access token + randomId
+    await User.findByIdAndUpdate(id, {
+      token: accessToken,
+    });
 
-        // Step 1: Check user in DB
-        const userData = await User.findById(id);
-        if (!userData) {
-          return res.status(404).json({
-            status: 0,
-            message: "USER_NOT_FOUND",
-          });
-        }
+    // Send response
+    return res.status(200).json({
+      status: 1,
+      message: "GENERATE_ACCESS_TOKEN_SUCCESSFUL",
+      accessToken: accessToken,
+      refreshToken
+    });
 
-        // Step 2: (Optional) Check if refresh token is expired manually
-        const currentTime = Math.floor(Date.now() / 1000);
-        if (decoded.exp && decoded.exp < currentTime) {
-          return res.status(403).json({
-            status: 0,
-            message: "REFRESH_TOKEN_EXPIRED",
-          });
-        }
-
-        // Step 3: Generate new randomId for access token
-        const randomId = crypto.randomUUID();
-
-        // Step 4: Generate new access token
-        const newAccessToken = GenerateToken(
-          {
-            id: userData._id,
-            randomId,
-            role: userData.role,
-          },
-          {
-            expiresIn: process.env.ACCESS_TOKEN_EXPIRE_IN,
-            issuer: process.env.APP_NAME,
-          }
-        );
-
-        // Step 5: Update user record with new access token + randomId
-        await User.findByIdAndUpdate(String(id), {
-          token: newAccessToken,
-          randomId: randomId,
-        });
-
-        // Step 6: Send response
-        return res.status(200).json({
-          status: 1,
-          message: "GENERATE_REFRESH_SUCCESSFUL",
-          accessToken: newAccessToken,
-          refreshToken, // still return same refresh token
-        });
-      }
-    );
   } catch (error) {
     console.error("RefreshToken error:", error);
     return res.status(500).json({

@@ -1,16 +1,16 @@
-import { lazy } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-
-// lazy-loaded pages
-const Dashboard = lazy(() => import('../features/dashboard/Dashboard'));
+import { Routes, Route } from 'react-router-dom';
+import { AuthRoutes, useAuthStore } from '../features/auth';
+import PrivateRoute from './PrivateRoute';
 
 const AppRoutes = () => {
+  const { accessToken } = useAuthStore();
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-
-      <Route path="*" element={<h1>404 Not Found</h1>} />
+      {!accessToken ? (
+        <Route path="/*" element={<AuthRoutes />} />
+      ) : (
+        <Route path="/*" element={<PrivateRoute />} />
+      )}
     </Routes>
   );
 };

@@ -4,6 +4,7 @@ import type { LoginData } from '../models/auth.interface';
 import { useMutation } from '@tanstack/react-query';
 import { loginUser } from '../api/authApi';
 import { useAuthStore } from '../store/authStore';
+import { ROUTES } from '../../../routes/routePaths';
 
 const LoginForm = () => {
   const navigate = useNavigate();
@@ -21,7 +22,7 @@ const LoginForm = () => {
     onSuccess: (res) => {
       console.log('Login successful:', res);
       setTokens(res.accessToken, res.refreshToken);
-      if (res.message === 'LOGIN_SUCCESSFUL') navigate('/dashboard');
+      if (res.message === 'LOGIN_SUCCESSFUL') navigate(`${ROUTES.DASHBOARD}`);
     }
   });
 

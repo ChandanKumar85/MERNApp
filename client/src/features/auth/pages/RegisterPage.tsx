@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import RegisterForm from '../components/RegisterForm';
+import { ROUTES } from '../../../routes/routePaths';
 
 const RegisterPage = () => {
   return (
@@ -13,7 +14,7 @@ const RegisterPage = () => {
         </div>
         <p className="text-center text-sm text-gray-600 mt-4">
           Already have an account?{' '}
-          <Link to="/login" className="font-medium text-gray-900 hover:underline">
+          <Link to={ROUTES.LOGIN} className="font-medium text-gray-900 hover:underline">
             Sign in
           </Link>
         </p>

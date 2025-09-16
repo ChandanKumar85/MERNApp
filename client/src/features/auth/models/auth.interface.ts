@@ -14,11 +14,3 @@ export interface LoginData {
 export interface DecodedToken {
   exp: number;
 }
-
-export interface AuthState {
-  accessToken: string | null;
-  refreshToken: string | null;
-  setTokens: (accessToken: string, refreshToken: string) => void;
-  clearTokens: () => void;
-  checkTokenExpiry: () => void;
-}

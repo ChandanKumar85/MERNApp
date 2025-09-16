@@ -3,6 +3,7 @@ import type { RegisterData } from '../models/auth.interface';
 import { useMutation } from '@tanstack/react-query';
 import { registerUser } from '../api/authApi';
 import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '../../../routes/routePaths';
 
 const RegisterForm = () => {
   const navigate = useNavigate();
@@ -18,17 +19,12 @@ const RegisterForm = () => {
     mutationFn: registerUser,
     onSuccess: (res) => {
       console.log('Registration successful:', res);
-      if (res.message === 'USER_REGISTERED') navigate('/login');
+      if (res.message === 'USER_REGISTERED') navigate(`${ROUTES.LOGIN}`);
     }
   });
 
   const onSubmit = (data: RegisterData) => {
-    mutate({
-      ...data,
-      // password: encryptedPassword,
-      // confirmPassword: encryptedConfirmPassword,
-    });
-    console.log(data);
+    mutate({...data});
   };
 
   return (

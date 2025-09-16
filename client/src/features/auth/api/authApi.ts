@@ -1,10 +1,11 @@
 import { httpClient } from "../../../api/http";
+import { ROUTES } from "../../../routes/routePaths";
 import type { LoginData, RegisterData } from "../models/auth.interface";
 
 // Function to register a new user
 export const registerUser = async (data: RegisterData) => {
   try {
-    const response = await httpClient.post("/auth/register", data);
+    const response = await httpClient.post(`/auth${ROUTES.REGISTER}`, data);
     return response.data;
   } catch (error: any) {
     console.error("Register error:", error);
@@ -15,13 +16,7 @@ export const registerUser = async (data: RegisterData) => {
 // Function to login a user
 export const loginUser = async (data: LoginData) => {
   try {
-    const response = await httpClient.post("/auth/login", data);
-
-    // // store accessToken if API sends one
-    // if (response.data?.accessToken) {
-    //   localStorage.setItem("accessToken", response.data.accessToken);
-    // }
-
+    const response = await httpClient.post(`/auth${ROUTES.LOGIN}`, data);
     return response.data;
   } catch (error: any) {
     console.error("Login error:", error);

@@ -1,6 +1,6 @@
-import React from 'react'
 import LoginForm from '../components/LoginForm'
 import { Link } from 'react-router-dom'
+import { ROUTES } from '../../../routes/routePaths'
 
 const LoginPage = () => {
   return (
@@ -14,12 +14,12 @@ const LoginPage = () => {
         </div>
         <p className="text-center text-sm text-gray-600 mt-4">
           Don't have an account?{' '}
-          <Link to="/register" className="font-medium text-gray-900 hover:underline">
+          <Link to={ROUTES.REGISTER} className="font-medium text-gray-900 hover:underline">
             Create one
           </Link>
         </p>
         <p className="text-center text-sm text-gray-600 mt-4">
-          <Link to="/forgot-password" className="font-medium text-gray-900 hover:underline">
+          <Link to={ROUTES.FORGOT_PASSWORD} className="font-medium text-gray-900 hover:underline">
             Forgot Password?
           </Link>
         </p>

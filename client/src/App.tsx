@@ -1,13 +1,24 @@
-import './App.css';
-import { AuthRoutes } from './features/auth';
-// import AppRoutes from './routes/AppRoute';
+import { Suspense, useEffect } from 'react';
+import AppRoutes from './routes/AppRoute';
+import { useAuthStore } from './features/auth/store/authStore';
 
 function App() {
+  useEffect(() => {
+    // // Run once on mount
+    // useAuthStore.getState().checkTokenExpiry();
+
+    // // Run every 1 minute
+    // const interval = setInterval(() => {
+    //   useAuthStore.getState().checkTokenExpiry();
+    // }, 60 * 1000);
+
+    // return () => clearInterval(interval);
+    useAuthStore.getState().checkTokenExpiry();
+  }, []);
   return (
-    <>
-      <AuthRoutes />
-      {/* <AppRoutes /> */}
-    </>
+    <Suspense fallback={<div>Loading...</div>}>
+      <AppRoutes />
+    </Suspense>
   );
 }
 
