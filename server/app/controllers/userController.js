@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const nodemailer = require("nodemailer");
 const User = require('../models/user.model');
 const { GenerateToken, GenerateRefreshToken } = require('../utils/tokenGenerate');
 
@@ -107,48 +108,6 @@ const loginUser = async (req, res) => {
     res.status(500).json({
       status: 0,
       message: 'SERVER_ERROR',
-    });
-  }
-};
-
-// Update Password
-const forgotPassword = async (req, res) => {
-  try {
-    const { password } = req.body;
-    const id = req.user.id;
-
-    if (!id) {
-      return res.status(400).json({ status: 0, message: 'USER_ID_REQUIRE' });
-    }
-
-    // Hash the new password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-    const updatedUser = await User.findByIdAndUpdate(
-      id, 
-      { password: hashedPassword }, 
-      { new: true, runValidators: true }
-    )
-
-    if (!updatedUser) {
-      return res.status(404).json({
-        status: 0,
-        id,
-        message: 'USER_NOT_FOUND',
-      })
-    }
-
-    return res.status(200).json({
-      status: 1,
-      message: 'RESET_PASSWORD_SUCCESSFUL',
-      userId: updatedUser._id,
-    })
-
-  } catch (err) {
-    return res.status(500).json({
-      status: 0,
-      message: 'SERVER_ERROR',
-      error: err.message,
     });
   }
 };
@@ -276,82 +235,99 @@ const refreshToken = async (req, res) => {
   }
 };
 
-
-// const refreshToken = async (req, res, next) => {
-//   try {
-//     const {id, refreshToken } = req.body;
+// Update Password
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
     
-//     if (!refreshToken) {
-//       return res.status(401).json({
-//         status: 0,
-//         message: 'NO_TOKEN_PROVIDED'
-//       });
-//     };
+    if (!email) {
+      return res.status(400).json({ status: 0, message: 'EMAIL_REQUIRED' });
+    }
+    
+    const checkUser = await User.findOne({ email: email.toLowerCase() });
+    if (!checkUser) {
+      return res.status(404).json({ status: 0, message: 'USER_NOT_FOUND' });
+    }
 
+    // // Access token
+    const randomId = crypto.randomUUID();
+    const accessToken = GenerateToken({ id: String(checkUser._id), randomId: randomId, role: checkUser.role }, { expiresIn: process.env.ACCESS_TOKEN_EXPIRE_IN, issuer: process.env.APP_NAME });
 
-//     jwt.verify(refreshToken, process.env.REFRESH_TOKEN_JWT_SECRET, async (err, user) => {
+    const transport = nodemailer.createTransport({
+      host: "gmail",
+      // port: 587,
+      secure: true, // true for 465, false for other ports
+      auth: {
+        user: process.env.EMAIL_USER, // generated ethereal user
+        pass: process.env.EMAIL_PASSWORD, // generated ethereal password
+      },
+    });
 
-//       if (err) {
-//         return res.status(403).json({ 
-//           status: 0,
-//           message: 'INVALID_REFRESH_TOKEN' 
-//         })
-//       };
+    const recivers = {
+      from: "mernapp@gmail.com", // sender address
+      to: email, // list of receivers
+      subject: "Password Reset - MERNApp", // Subject line
+      text: `You requested for password reset. Use the token below to reset your password. \n\n 
+      ${process.env.CLIENT_URL}/reset-password/${accessToken} \n\n Note: This token is valid for a short period. If you did not request this, please ignore this email.`, // plain text body
+    }
 
-//       // Step 1: Check user in DB
-//       const userData = await User.findById(id);
+    await transport.sendMail(recivers);
 
-//       // Access token
-//       const randomId = crypto.randomUUID();
-//       const newAccessToken = GenerateToken({ randomId: randomId, role: userData.role }, { expiresIn: process.env.ACCESS_TOKEN_EXPIRE_IN, issuer: process.env.APP_NAME });
+    return res.status(200).json({
+      status: 1,
+      message: 'FORGOT_PASSWORD_EMAIL_SENT',
+    });
 
-//       // store token in db
-//       await User.findByIdAndUpdate(
-//         String(id), 
-//         { token: newAccessToken }
-//       )
-
-//       res.status(200).json({
-//         status: 1,
-//         message: 'GENERATE_REFRESH_SUCCESSFUL',
-//         accessToken: newAccessToken,
-//         refreshToken
-//       });
-//     });
-
-//   } catch (error) {
-//     res.status(500).json({
-//       status: 0,
-//       message: 'SERVER_ERROR',
-//     });
-//   }
-// }
-
-// // Retrieve and return all users from the database.
-// const getUsers = (req, res) => {
-//   User.find()
-//     .then((users) => {
-//       if (users.length > 0) {
-//         res.status(200).json({
-//           status: 1,
-//           length: users.length,
-//           message: 'Users retrieved successfully',
-//           users: users,
-//         });
-//       } else {
-//         res.status(404).json({
-//           status: 0,
-//           message: 'No users found',
-//         });
-//       }
-//     })
-//     .catch((err) => {
-//       res.status(500).json({
-//         status: 0,
-//         message: 'Error retrieving users',
-//         error: err.message,
-//       });
-//     });
-// };
+  } catch (err) {
+    return res.status(500).json({
+      status: 0,
+      message: 'SERVER_ERROR',
+      error: err.message,
+    });
+  }
+};
 
 module.exports = { loginUser, registerUser, forgotPassword, deleteUser, getUser, logout, refreshToken }; // getUsers
+
+
+
+// const forgotPassword = async (req, res) => {
+//   try {
+//     const { password } = req.body;
+//     const id = req.user.id;
+
+//     if (!id) {
+//       return res.status(400).json({ status: 0, message: 'USER_ID_REQUIRE' });
+//     }
+
+//     // Hash the new password
+//     const salt = await bcrypt.genSalt(10);
+//     const hashedPassword = await bcrypt.hash(password, salt);
+//     const updatedUser = await User.findByIdAndUpdate(
+//       id, 
+//       { password: hashedPassword }, 
+//       { new: true, runValidators: true }
+//     )
+
+//     if (!updatedUser) {
+//       return res.status(404).json({
+//         status: 0,
+//         id,
+//         message: 'USER_NOT_FOUND',
+//       })
+//     }
+
+//     return res.status(200).json({
+//       status: 1,
+//       message: 'RESET_PASSWORD_SUCCESSFUL',
+//       userId: updatedUser._id,
+//     })
+
+//   } catch (err) {
+//     return res.status(500).json({
+//       status: 0,
+//       message: 'SERVER_ERROR',
+//       error: err.message,
+//     });
+//   }
+// };
