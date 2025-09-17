@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
+var cors = require('cors')
 const userRoute = require('./app/routes/userRoute');
 const connectDB = require('./app/config/db');
 
@@ -15,8 +16,11 @@ const app = express();
 // Middleware to parse JSON requests
 app.use(express.json());
 
-// Routes
-app.use('/api/v1/users', userRoute)
+// Enable CORS for all routes
+app.use(cors())
+
+// Auth Routes
+app.use('/api/v1/auth', userRoute)
 
 
 // Connect to DB first, then start server

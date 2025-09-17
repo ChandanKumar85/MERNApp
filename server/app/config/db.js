@@ -7,18 +7,9 @@ const DB_CRID = process.env.DATABASE_URL.replace(
 );
 
 const connectDB = async () => {
-    try {
-        // await mongoose.connect(DB_CRID);
-        await mongoose.connect(DB_CRID, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-        });
-        console.log('MongoDB connected successfully');
-    }
-    catch (err) {
-        console.error('MongoDB connection error:', err);
-        process.exit(1);
-    }
+    mongoose.connect(DB_CRID)
+    .then(() => console.log("MongoDB connected successfully"))
+    .catch((err) => console.error("MongoDB connection error:", err));
 }
 
 module.exports = connectDB;
