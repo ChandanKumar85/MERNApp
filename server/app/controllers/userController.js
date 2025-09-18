@@ -239,39 +239,52 @@ const refreshToken = async (req, res) => {
 const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
-    
+
     if (!email) {
       return res.status(400).json({ status: 0, message: 'EMAIL_REQUIRED' });
     }
-    
+
     const checkUser = await User.findOne({ email: email.toLowerCase() });
     if (!checkUser) {
       return res.status(404).json({ status: 0, message: 'USER_NOT_FOUND' });
     }
 
-    // // Access token
+    // Generate unique random ID for reset
     const randomId = crypto.randomUUID();
-    const accessToken = GenerateToken({ id: String(checkUser._id), randomId: randomId, role: checkUser.role }, { expiresIn: process.env.ACCESS_TOKEN_EXPIRE_IN, issuer: process.env.APP_NAME });
 
-    const transport = nodemailer.createTransport({
-      host: "gmail",
-      // port: 587,
-      secure: true, // true for 465, false for other ports
+    // Optional: Save randomId in DB for verification later
+    checkUser.resetPasswordId = randomId;
+    checkUser.resetPasswordExpiry = Date.now() + 5 * 60 * 1000; // 15 mins expiry
+    await checkUser.save();
+
+    // Generate JWT with user ID + randomId
+    const accessToken = GenerateToken(
+      { id: String(checkUser._id), randomId },
+      { expiresIn: process.env.ACCESS_TOKEN_EXPIRE_IN, issuer: process.env.APP_NAME }
+    );
+
+    // Configure transporter
+    const transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
       auth: {
-        user: process.env.EMAIL_USER, // generated ethereal user
-        pass: process.env.EMAIL_PASSWORD, // generated ethereal password
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD,
       },
     });
 
-    const recivers = {
-      from: "mernapp@gmail.com", // sender address
-      to: email, // list of receivers
-      subject: "Password Reset - MERNApp", // Subject line
-      text: `You requested for password reset. Use the token below to reset your password. \n\n 
-      ${process.env.CLIENT_URL}/reset-password/${accessToken} \n\n Note: This token is valid for a short period. If you did not request this, please ignore this email.`, // plain text body
-    }
+    // Email content
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Password Reset Request - MERNApp",
+      text: `You requested a password reset. Click the link below to reset your password:\n\n
+      ${process.env.CLIENT_URL}/reset-password/${accessToken}\n\n
+      Note: This link is valid for a short period. If you did not request this, please ignore this email.`,
+    };
 
-    await transport.sendMail(recivers);
+    await transporter.sendMail(mailOptions);
 
     return res.status(200).json({
       status: 1,
@@ -287,47 +300,48 @@ const forgotPassword = async (req, res) => {
   }
 };
 
-module.exports = { loginUser, registerUser, forgotPassword, deleteUser, getUser, logout, refreshToken }; // getUsers
+// Reset Password
+const resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+    
+    if (!token) {
+      return res.status(400).json({ status: 0, message: 'TOKEN_REQUIRED' });
+    }
+
+    if (!password) {
+      return res.status(400).json({ status: 0, message: 'PASSWORD_REQUIRED' });
+    }
+
+    // Verify token
+    const decoded = jwt.verify(token, process.env.ACCESS_JWT_SECRET);
+
+    // Find user by ID from token
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(404).json({ status: 0, message: 'USER_NOT_FOUND' });
+    }
+
+    // Hash new password
+    const newHashedPassword = await bcrypt.hash(password, 10);
+
+    user.password = newHashedPassword;
+    await user.save();
+
+    return res.status(200).json({
+      status: 1,
+      message: 'PASSWORD_RESET_SUCCESSFUL',
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      status: 0,
+      message: 'SERVER_ERROR',
+      error: error.message,
+    });
+  }
+};
 
 
-
-// const forgotPassword = async (req, res) => {
-//   try {
-//     const { password } = req.body;
-//     const id = req.user.id;
-
-//     if (!id) {
-//       return res.status(400).json({ status: 0, message: 'USER_ID_REQUIRE' });
-//     }
-
-//     // Hash the new password
-//     const salt = await bcrypt.genSalt(10);
-//     const hashedPassword = await bcrypt.hash(password, salt);
-//     const updatedUser = await User.findByIdAndUpdate(
-//       id, 
-//       { password: hashedPassword }, 
-//       { new: true, runValidators: true }
-//     )
-
-//     if (!updatedUser) {
-//       return res.status(404).json({
-//         status: 0,
-//         id,
-//         message: 'USER_NOT_FOUND',
-//       })
-//     }
-
-//     return res.status(200).json({
-//       status: 1,
-//       message: 'RESET_PASSWORD_SUCCESSFUL',
-//       userId: updatedUser._id,
-//     })
-
-//   } catch (err) {
-//     return res.status(500).json({
-//       status: 0,
-//       message: 'SERVER_ERROR',
-//       error: err.message,
-//     });
-//   }
-// };
+module.exports = { loginUser, registerUser, forgotPassword, deleteUser, getUser, logout, refreshToken, resetPassword }; // getUsers

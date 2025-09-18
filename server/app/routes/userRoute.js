@@ -1,5 +1,5 @@
 const express = require('express');
-const { registerUser, loginUser, forgotPassword, deleteUser, getUser, logout, refreshToken } = require('../controllers/userController');
+const { registerUser, loginUser, forgotPassword, deleteUser, getUser, logout, refreshToken, resetPassword } = require('../controllers/userController');
 const validatePassword = require('../middleware/validatePassword');
 const validateToken = require('../middleware/validateToken');
 const validateRefreshToken = require('../middleware/validateRefreshToken');
@@ -12,6 +12,7 @@ userRoute.get('/user', validateToken, getUser); // Get users
 userRoute.post('/logout', validateToken, logout); // Get users
 userRoute.post('/refresh-token', validateRefreshToken, refreshToken);
 userRoute.post('/forgot-password', forgotPassword);
+userRoute.post('/reset-password/:token', resetPassword);
 
 // userRoute.get('/users', getUsers); // Get users
 // userRoute.patch('/update-password', validateToken, validatePassword, forgotPassword);
