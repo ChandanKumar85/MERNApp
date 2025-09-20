@@ -28,7 +28,7 @@ const userSchema = new mongoose.Schema(
         validator: (v) => /^[0-9]{10}$/.test(v),
       },
     },
-    password: { 
+    password: {
       type: String, 
       required: true, 
       minlength: 8 

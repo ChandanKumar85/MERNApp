@@ -4,6 +4,9 @@ import { useMutation } from '@tanstack/react-query';
 import { registerUser } from '../api/authApi';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../../routes/routePaths';
+import CryptoJS from "crypto-js";
+
+const SECRET_KEY = import.meta.env.VITE_SECRET_KEY as string;
 
 const RegisterForm = () => {
   const navigate = useNavigate();
@@ -22,13 +25,15 @@ const RegisterForm = () => {
       if (res.message === 'USER_REGISTERED') {
         setTimeout(() => {
           navigate(`${ROUTES.LOGIN}`)
-        }, 3000);
+        }, 2000);
       };
     }
   });
 
   const onSubmit = (data: RegisterData) => {
-    mutate({...data});
+    const encryptedPassword = CryptoJS.AES.encrypt(data.password, SECRET_KEY).toString();
+    const encryptedConfirmPassword = CryptoJS.AES.encrypt(data.confirmPassword, SECRET_KEY).toString();
+    mutate({...data, password: encryptedPassword, confirmPassword: encryptedConfirmPassword});
   };
 
   return (

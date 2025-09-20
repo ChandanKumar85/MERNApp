@@ -3,6 +3,9 @@ import type { LoginData } from '../models/auth.interface';
 import { useMutation } from '@tanstack/react-query';
 import { loginUser } from '../api/authApi';
 import { useAuthStore } from '../store/authStore';
+import CryptoJS from "crypto-js";
+
+const SECRET_KEY = import.meta.env.VITE_SECRET_KEY as string;
 
 const LoginForm = () => {
   const setTokens = useAuthStore((state) => state.setTokens);
@@ -23,7 +26,8 @@ const LoginForm = () => {
   });
 
   const onSubmit = (data: LoginData) => {
-    mutate({...data, password: data.password});
+    const encryptedUsername = CryptoJS.AES.encrypt(data.password, SECRET_KEY).toString();
+    mutate({...data, password: encryptedUsername});
   };
 
   return (
