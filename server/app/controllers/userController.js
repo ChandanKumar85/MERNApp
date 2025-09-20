@@ -1,4 +1,5 @@
 const bcrypt = require('bcryptjs');
+const crypto = require("crypto");
 const jwt = require('jsonwebtoken');
 const nodemailer = require("nodemailer");
 const User = require('../models/user.model');
@@ -67,11 +68,17 @@ const loginUser = async (req, res) => {
     
     // Verify password
     const user = await User.findOne({ email: email.toLowerCase() });
-    const isMatch = await bcrypt.compare(plainPassword, user.password);
+    if (!user) {
+      return res.status(401).json({
+        status: 0,
+        message: "INVALID_CREDENTIALS",
+      });
+    }
 
+    const isMatch = await bcrypt.compare(plainPassword, user.password);
     // Check if password matches
     if (!isMatch) {
-      return res.status(400).json({
+      return res.status(401).json({
         status: 0,
         message: 'INVALID_CREDENTIALS',
       });
@@ -174,7 +181,7 @@ const logout = async (req, res) => {
     // Invalidate the token by clearing it in DB
     const user = await User.findByIdAndUpdate(
       id,
-      { $unset: { token: "", refreshToken: "" } }, // safer than setting null
+      { $unset: { token: 1, refreshToken: 1 } }, // safer than setting null
       { new: true } // return updated doc if needed
     );
 

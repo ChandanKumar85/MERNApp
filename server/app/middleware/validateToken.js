@@ -64,7 +64,7 @@ const validateToken = async (req, res, next) => {
 
     // Step 3: Compare randomId (request vs DB)
     if (decodedReq.randomId !== decodedDb.randomId) {
-      return res.status(401).json({
+      return res.status(403).json({
         status: 0,
         message: 'TOKEN_MISMATCH',
       });
