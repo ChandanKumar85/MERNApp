@@ -3,27 +3,28 @@ const jwt = require('jsonwebtoken');
 const nodemailer = require("nodemailer");
 const User = require('../models/user.model');
 const { GenerateToken, GenerateRefreshToken } = require('../utils/tokenGenerate');
+const { decrypt } = require('../utils/crypto');
 
 // Create and Save a new User
 const registerUser = async (req, res) => {
   try {
-    let { name, email, phone, password, confirmPassword } = req.body;
+    let { name, email, phone, password } = req.body;
 
     // Basic validation
-    if (!name || !email || !phone || !password || !confirmPassword) {
+    if (!name || !email || !phone || !password) {
       return res.status(400).json({
         status: 0,
-        message: 'ALL_FIELDS_REQUIRED',
+        message: "ALL_FIELDS_REQUIRED",
       });
     }
 
-    // Normalize email & Check if user already exists
+    // Normalize email & Check if user exists
     email = email.toLowerCase();
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({
         status: 0,
-        message: 'USER_ALREADY_EXISTS',
+        message: "USER_ALREADY_EXISTS",
       });
     }
 
@@ -31,24 +32,19 @@ const registerUser = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create new user
+    // Save new user
     const newUser = new User({ name, email, phone, password: hashedPassword });
     await newUser.save();
 
     return res.status(201).json({
       status: 1,
-      message: 'USER_REGISTERED',
-      user: {
-        id: newUser._id,
-        name: newUser.name,
-        email: newUser.email,
-        phone: newUser.phone,
-      },
+      message: "USER_REGISTERED",
     });
   } catch (error) {
+    console.error(error);
     return res.status(500).json({
       status: 0,
-      message: 'SERVER_ERROR',
+      message: "SERVER_ERROR",
     });
   }
 };
@@ -66,9 +62,12 @@ const loginUser = async (req, res) => {
       });
     }
 
+    // Decrypt password from frontend
+    const plainPassword = decrypt(password);
+    
     // Verify password
     const user = await User.findOne({ email: email.toLowerCase() });
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await bcrypt.compare(plainPassword, user.password);
 
     // Check if password matches
     if (!isMatch) {
@@ -97,12 +96,12 @@ const loginUser = async (req, res) => {
       message: 'LOGIN_SUCCESSFUL',
       accessToken,
       refreshToken,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
+      // user: {
+      //   id: user._id,
+      //   name: user.name,
+      //   email: user.email,
+      //   role: user.role,
+      // },
     });
   } catch (err) {
     res.status(500).json({
@@ -315,11 +314,15 @@ const resetPassword = async (req, res) => {
       });
     }
 
-    if (!password) {
+    // Decrypt password from frontend
+    const plainPassword = decrypt(password);
+    const plainConfirmPassword = decrypt(confirmPassword);
+
+    if (!plainPassword) {
       return res.status(400).json({ status: 0, message: 'PASSWORD_REQUIRED' });
     }
 
-    if (password !== confirmPassword) {
+    if (plainPassword !== plainConfirmPassword) {
       return res.status(400).json({ status: 0, message: 'PASSWORDS_DO_NOT_MATCH' });
     }
 
@@ -333,7 +336,7 @@ const resetPassword = async (req, res) => {
     }
 
     // Hash new password
-    const newHashedPassword = await bcrypt.hash(password, 10);
+    const newHashedPassword = await bcrypt.hash(plainPassword, 10);
     user.password = newHashedPassword;
     await user.save();
 

@@ -3,7 +3,9 @@ import { useForm } from 'react-hook-form';
 import { resetPassword } from '../api/authApi';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../../routes/routePaths';
+import CryptoJS from "crypto-js";
 
+const SECRET_KEY = import.meta.env.VITE_SECRET_KEY as string;
 interface PasswordUpdateFormData {
   password: string;
   confirmPassword: string;
@@ -31,13 +33,15 @@ const PasswordUpdate = (props: any) => {
         if (err.response?.data?.message === "TOKEN_EXPIRED") {
           setTimeout(() => {
             navigate(ROUTES.FORGOT_PASSWORD);
-          }, 3000);
+          }, 2000);
         }
       }
     });
 
     const onSubmit = (data: PasswordUpdateFormData) => {
-      mutate({ ...data, token: props.resetToken });
+      const encryptedPassword = CryptoJS.AES.encrypt(data.password, SECRET_KEY).toString();
+      const encryptedConfirmPassword = CryptoJS.AES.encrypt(data.confirmPassword, SECRET_KEY).toString();
+      mutate({ ...data, password: encryptedPassword, confirmPassword: encryptedConfirmPassword, token: props.resetToken });
     };
   return (
     <>

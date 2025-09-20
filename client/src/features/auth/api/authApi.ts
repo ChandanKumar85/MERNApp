@@ -7,9 +7,11 @@ export const registerUser = async (data: RegisterData) => {
   try {
     const response = await httpClient.post(`/auth${ROUTES.REGISTER}`, data);
     return response.data;
-  } catch (error: any) {
-    console.error("Register error:", error);
-    throw error.response?.data || { status: 0, message: "REGISTER_FAILED" };
+  } catch (err: any) {
+    if (err.response?.data?.message === "REGISTER_FAILED") {
+      throw err;
+    }
+    throw err;
   }
 };
 
@@ -31,9 +33,11 @@ export const logoutUser = async (data: any) => {
   try {
     const response = await httpClient.post("/auth/logout", data);
     return response.data;
-  } catch (error: any) {
-    console.error("Logout error:", error);
-    throw error.response?.data || { status: 0, message: "LOGOUT_FAILED" };
+  } catch (err: any) {
+    if (err.response?.data?.message === "LOGOUT_FAILED") {
+      throw err;
+    }
+    throw err;
   }
 }
 
@@ -43,8 +47,6 @@ export const forgotPassword = async (data: {email: string}) => {
     const response = await httpClient.post(`/auth${ROUTES.FORGOT_PASSWORD}`, data);
     return response.data;
   } catch (err: any) {
-    // console.error("Server error:", error);
-    // throw error.response?.data || { status: 0, message: "SERVER_ERROR" };
     if (err.response?.data?.message === "SERVER_ERROR") {
       throw err;
     }
