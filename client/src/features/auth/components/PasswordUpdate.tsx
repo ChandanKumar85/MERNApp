@@ -80,6 +80,7 @@ const PasswordUpdate = (props: any) => {
                   'Password must be at least 8 characters, include 1 uppercase, 1 number & 1 special character',
               },
             })}
+            disabled={isSuccess}
             className="w-full rounded-xl border border-gray-300 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 outline-none px-3 py-2"
           />
           {errors.password && (
@@ -102,6 +103,7 @@ const PasswordUpdate = (props: any) => {
               validate: (value) =>
                 value === watch('password') || 'Passwords do not match',
             })}
+            disabled={isSuccess}
             className="w-full rounded-xl border border-gray-300 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 outline-none px-3 py-2"
           />
           {errors.confirmPassword && (
@@ -112,7 +114,7 @@ const PasswordUpdate = (props: any) => {
         {/* Submit */}
         <button
           type="submit"
-          disabled={isPending}
+          disabled={isPending || isSuccess}
           className="w-full mt-2 inline-flex items-center cursor-pointer justify-center rounded-2xl bg-gray-900 px-4 py-2.5 text-white font-medium shadow-sm hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900"
         >
           {isPending ? (<svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" aria-hidden="true">
