@@ -35,6 +35,13 @@ const validateRefreshToken = async (req, res, next) => {
           });
         }
 
+        if (!userData.refreshToken || !userData.token) {
+          return res.status(403).json({
+            status: 0,
+            message: "USER_LOGGED_OUT",
+          });
+        }
+
         // (Optional) Check if refresh token is expired manually
         const currentTime = Math.floor(Date.now() / 1000);
         if (decoded.exp && decoded.exp < currentTime) {

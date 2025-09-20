@@ -88,7 +88,7 @@ const loginUser = async (req, res) => {
     // store token in db
     await User.findByIdAndUpdate(
       String(user._id), 
-      { token: accessToken }
+      { token: accessToken, refreshToken: refreshToken }
     )
 
     // Successful login
@@ -175,7 +175,7 @@ const logout = async (req, res) => {
     // Invalidate the token by clearing it in DB
     const user = await User.findByIdAndUpdate(
       id,
-      { $unset: { token: "" } }, // safer than setting null
+      { $unset: { token: "", refreshToken: "" } }, // safer than setting null
       { new: true } // return updated doc if needed
     );
 
@@ -245,22 +245,17 @@ const forgotPassword = async (req, res) => {
     }
 
     const checkUser = await User.findOne({ email: email.toLowerCase() });
+
     if (!checkUser) {
       return res.status(404).json({ status: 0, message: 'USER_NOT_FOUND' });
     }
 
     // Generate unique random ID for reset
     const randomId = crypto.randomUUID();
-
-    // Optional: Save randomId in DB for verification later
-    checkUser.resetPasswordId = randomId;
-    checkUser.resetPasswordExpiry = Date.now() + 5 * 60 * 1000; // 15 mins expiry
-    await checkUser.save();
-
     // Generate JWT with user ID + randomId
     const accessToken = GenerateToken(
       { id: String(checkUser._id), randomId },
-      { expiresIn: process.env.ACCESS_TOKEN_EXPIRE_IN, issuer: process.env.APP_NAME }
+      { expiresIn: process.env.GENERATE_TOKEN_EXPIREIN, issuer: process.env.APP_NAME }
     );
 
     // Configure transporter
@@ -280,8 +275,8 @@ const forgotPassword = async (req, res) => {
       to: email,
       subject: "Password Reset Request - MERNApp",
       text: `You requested a password reset. Click the link below to reset your password:\n\n
-      ${process.env.CLIENT_URL}/reset-password/${accessToken}\n\n
-      Note: This link is valid for a short period. If you did not request this, please ignore this email.`,
+      ${process.env.CLIENT_WEB_URL}?reset=${accessToken}\n\n
+      Note: This link is valid for a short period(${process.env.GENERATE_TOKEN_EXPIREIN}). If you did not request this, please ignore this email.`,
     };
 
     await transporter.sendMail(mailOptions);
@@ -304,14 +299,28 @@ const forgotPassword = async (req, res) => {
 const resetPassword = async (req, res) => {
   try {
     const { token } = req.params;
-    const { password } = req.body;
-    
+    const { password, confirmPassword } = req.body;
+
     if (!token) {
       return res.status(400).json({ status: 0, message: 'TOKEN_REQUIRED' });
     }
 
+    // Step 1: Check request token expiry
+    const decode = jwt.decode(token);
+    const currentTime = Math.floor(Date.now() / 1000);
+    if (decode.exp && decode.exp < currentTime) {
+      return res.status(401).json({
+        status: 0,
+        message: 'TOKEN_EXPIRED', // expired
+      });
+    }
+
     if (!password) {
       return res.status(400).json({ status: 0, message: 'PASSWORD_REQUIRED' });
+    }
+
+    if (password !== confirmPassword) {
+      return res.status(400).json({ status: 0, message: 'PASSWORDS_DO_NOT_MATCH' });
     }
 
     // Verify token
@@ -325,7 +334,6 @@ const resetPassword = async (req, res) => {
 
     // Hash new password
     const newHashedPassword = await bcrypt.hash(password, 10);
-
     user.password = newHashedPassword;
     await user.save();
 

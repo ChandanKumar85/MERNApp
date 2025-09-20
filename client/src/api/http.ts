@@ -32,7 +32,7 @@ httpClient.interceptors.response.use(
 
       // refresh failed → force logout
       useAuthStore.getState().clearTokens();
-      window.location.href = ROUTES.LOGIN;
+      // window.location.href = ROUTES.LOGIN;
     }
 
     return Promise.reject(error);

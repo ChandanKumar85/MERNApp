@@ -36,6 +36,7 @@ const userSchema = new mongoose.Schema(
     // confirmPassword: { type: String, required: true },
     role: { type: String, default: 'admin', enum: ['user', 'admin', 'super-admin'] },
     token: {type: String, default: ''},
+    refreshToken: {type: String, default: ''},
     createdAt: { type: Date, default: Date.now },
   },
   { timestamps: true }
