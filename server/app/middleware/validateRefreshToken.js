@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const crypto = require("crypto");
 const User = require('../models/user.model');
 const { GenerateToken } = require('../utils/tokenGenerate');
 
@@ -20,7 +21,7 @@ const validateRefreshToken = async (req, res, next) => {
       async (err, decoded) => {
         const { id } = decoded || {};
         if (err) {
-          return res.status(403).json({
+          return res.status(401).json({
             status: 0,
             message: "INVALID_REFRESH_TOKEN",
           });
@@ -45,7 +46,7 @@ const validateRefreshToken = async (req, res, next) => {
         // (Optional) Check if refresh token is expired manually
         const currentTime = Math.floor(Date.now() / 1000);
         if (decoded.exp && decoded.exp < currentTime) {
-          return res.status(403).json({
+          return res.status(401).json({
             status: 0,
             message: "REFRESH_TOKEN_EXPIRED",
           });
