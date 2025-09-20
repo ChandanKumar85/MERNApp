@@ -71,8 +71,6 @@ export const useAuthStore = create<AuthState>()(
           return null;
         }
       },
-
-      
     }),
     {
       name: 'authStorage'

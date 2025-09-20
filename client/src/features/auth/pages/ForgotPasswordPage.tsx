@@ -1,12 +1,26 @@
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { ROUTES } from '../../../routes/routePaths';
-import Otpform from '../components/Otpform';
-import PasswordUpdate from '../components/PasswordUpdate';
-import ForgotPasswordForm from '../components/ForgotPasswordForm';
-import { useState } from 'react';
+import { lazy, useEffect, useState } from 'react';
+
+const ForgotPasswordForm = lazy(() => import('../components/ForgotPasswordForm'));
+const Otpform = lazy(() => import('../components/Otpform'));
+const PasswordUpdate = lazy(() => import('../components/PasswordUpdate'));
 
 const ForgotPasswordPage = () => {
+  const [searchParams] = useSearchParams();
   const [step, setStep] = useState<'forgot' | 'otp' | 'update'>('forgot');
+
+  
+  const resetToken = searchParams.get('reset');
+  // console.log("Reset Token:", resetToken);
+
+  useEffect(() => {
+    if (resetToken) {
+      setStep('update');
+    } else {
+      setStep('forgot');
+    }
+  }, [resetToken]);
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 p-4">
@@ -20,7 +34,7 @@ const ForgotPasswordPage = () => {
           ) : step === 'otp' ? (
             <Otpform />
           ) : (
-            <PasswordUpdate />
+            <PasswordUpdate resetToken={resetToken} />
           )}
           
           <p className="text-xs text-gray-500 mt-4">We'll send you a link to reset your password. Make sure to check your inbox.</p>

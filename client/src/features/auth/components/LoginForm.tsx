@@ -1,28 +1,24 @@
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
 import type { LoginData } from '../models/auth.interface';
 import { useMutation } from '@tanstack/react-query';
 import { loginUser } from '../api/authApi';
 import { useAuthStore } from '../store/authStore';
-import { ROUTES } from '../../../routes/routePaths';
 
 const LoginForm = () => {
-  const navigate = useNavigate();
   const setTokens = useAuthStore((state) => state.setTokens);
   
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm<LoginData>();
 
   const { mutate, isPending, isError, isSuccess, error } = useMutation({
     mutationFn: loginUser,
     onSuccess: (res) => {
-      console.log('Login successful:', res);
-      setTokens(res.accessToken, res.refreshToken);
-      if (res.message === 'LOGIN_SUCCESSFUL') navigate(`${ROUTES.DASHBOARD}`);
+      if (res.message === 'LOGIN_SUCCESSFUL'){
+        setTokens(res.accessToken, res.refreshToken);
+      };
     }
   });
 
@@ -35,6 +31,11 @@ const LoginForm = () => {
       {isError && (
         <div className="mb-4 text-red-600 bg-red-50 p-3 rounded-md">
           {error instanceof Error && 'User or Password is wrong.'}
+        </div>
+      )}
+      {isSuccess && (
+        <div className="mb-4 text-green-600 bg-green-50 p-3 rounded-md">
+          Login successful! Redirecting...
         </div>
       )}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>

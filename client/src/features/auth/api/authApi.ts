@@ -18,9 +18,11 @@ export const loginUser = async (data: LoginData) => {
   try {
     const response = await httpClient.post(`/auth${ROUTES.LOGIN}`, data);
     return response.data;
-  } catch (error: any) {
-    console.error("Login error:", error);
-    throw error.response?.data || { status: 0, message: "LOGIN_FAILED" };
+  } catch (err: any) {
+    if (err.response?.data?.message === "LOGIN_FAILED") {
+      throw err;
+    }
+    throw err;
   }
 };
 
@@ -34,3 +36,32 @@ export const logoutUser = async (data: any) => {
     throw error.response?.data || { status: 0, message: "LOGOUT_FAILED" };
   }
 }
+
+// Function to forgot Password
+export const forgotPassword = async (data: {email: string}) => {
+  try {
+    const response = await httpClient.post(`/auth${ROUTES.FORGOT_PASSWORD}`, data);
+    return response.data;
+  } catch (err: any) {
+    // console.error("Server error:", error);
+    // throw error.response?.data || { status: 0, message: "SERVER_ERROR" };
+    if (err.response?.data?.message === "SERVER_ERROR") {
+      throw err;
+    }
+    throw err;
+  }
+};
+
+// Function to Reset Password
+export const resetPassword = async (data: { password: string; confirmPassword: string, token: any }) => {
+  try {
+    const { password, confirmPassword, token } = data;
+    const response = await httpClient.post(`/auth${ROUTES.RESET_PASSWORD}/${token}`, { password, confirmPassword });
+    return response.data;
+  } catch (err: any) {
+    if (err.response?.data?.message === "TOKEN_EXPIRED") {
+      throw err;
+    }
+    throw err;
+  }
+};
