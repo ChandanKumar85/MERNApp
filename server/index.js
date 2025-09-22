@@ -1,27 +1,15 @@
 const express = require('express');
-const mongoose = require('mongoose');
-var cors = require('cors')
 const userRoute = require('./app/routes/userRoute');
 const connectDB = require('./app/config/db');
+var cors = require('cors')
 
-// Load environment variables from .env file
-require('dotenv').config();
+require('dotenv').config(); // Load environment variables from .env file
+const PORT = process.env.PORT || 5000; // Set the port from environment variable or default to 5000
+const app = express(); // Initialize Express app
 
-// Set the port from environment variable or default to 5000
-const PORT = process.env.PORT || 5000;
-
-// Initialize Express app
-const app = express();
-
-// Middleware to parse JSON requests
-app.use(express.json());
-
-// Enable CORS for all routes
-app.use(cors())
-
-// Auth Routes
-app.use('/api/v1/auth', userRoute)
-
+app.use(express.json()); // Middleware to parse JSON requests
+app.use(cors()) // Enable CORS for all routes
+app.use('/api/v1/auth', userRoute) // Auth Routes
 
 // Connect to DB first, then start server
 connectDB().then(() => {
