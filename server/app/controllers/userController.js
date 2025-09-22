@@ -103,12 +103,7 @@ const loginUser = async (req, res) => {
       message: 'LOGIN_SUCCESSFUL',
       accessToken,
       refreshToken,
-      // user: {
-      //   id: user._id,
-      //   name: user.name,
-      //   email: user.email,
-      //   role: user.role,
-      // },
+      id: user._id,
     });
   } catch (err) {
     res.status(500).json({
@@ -362,4 +357,13 @@ const resetPassword = async (req, res) => {
 };
 
 
-module.exports = { loginUser, registerUser, forgotPassword, deleteUser, getUser, logout, refreshToken, resetPassword }; // getUsers
+module.exports = { 
+  loginUser, 
+  registerUser, 
+  forgotPassword, 
+  deleteUser, 
+  getUser, 
+  logout, 
+  refreshToken, 
+  resetPassword 
+}; // getUsers

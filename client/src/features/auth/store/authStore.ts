@@ -9,7 +9,8 @@ import { ROUTES } from '../../../routes/routePaths';
 export interface AuthState {
   accessToken: string | null;
   refreshToken: string | null;
-  setTokens: (accessToken: string, refreshToken: string) => void;
+  id: string | null;
+  setTokens: (accessToken: string, refreshToken: string, id: string) => void;
   clearTokens: () => void;
   checkTokenExpiry: () => Promise<void>;
   refreshAccessToken: () => Promise<string | null>;
@@ -20,13 +21,14 @@ export const useAuthStore = create<AuthState>()(
     (set, get) => ({
       accessToken: null,
       refreshToken: null,
+      id: null,
 
-      setTokens: (accessToken, refreshToken) => {
-        set({ accessToken, refreshToken });
+      setTokens: (accessToken, refreshToken, id) => {
+        set({ accessToken, refreshToken, id });
       },
 
       clearTokens: () => {
-        set({ accessToken: null, refreshToken: null });
+        set({ accessToken: null, refreshToken: null, id: null });
       },
 
       checkTokenExpiry: async () => {
@@ -61,8 +63,8 @@ export const useAuthStore = create<AuthState>()(
           const response = await httpClient.post(`/auth${ROUTES.REFRESH_TOKEN}`, {
             refreshToken,
           });
-          const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data;
-          setTokens(newAccessToken, newRefreshToken);
+          const { accessToken: newAccessToken, refreshToken: newRefreshToken, id: newId } = response.data;
+          setTokens(newAccessToken, newRefreshToken, newId);
           return newAccessToken;
         } catch (error) {
           console.error('Failed to refresh token:', error);

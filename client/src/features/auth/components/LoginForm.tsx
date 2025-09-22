@@ -19,8 +19,9 @@ const LoginForm = () => {
   const { mutate, isPending, isError, isSuccess, error } = useMutation({
     mutationFn: loginUser,
     onSuccess: (res) => {
+      console.log('Login response:', res.id);
       if (res.message === 'LOGIN_SUCCESSFUL'){
-        setTokens(res.accessToken, res.refreshToken);
+        setTokens(res.accessToken, res.refreshToken, res.id);
       };
     }
   });
