@@ -18,22 +18,15 @@ httpClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-
       const newAccessToken = await useAuthStore.getState().refreshAccessToken();
-
       if (typeof newAccessToken === "string" || newAccessToken) {
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-        return httpClient(originalRequest); // retry
+        return httpClient(originalRequest);
       }
-
-      // refresh failed → force logout
       useAuthStore.getState().clearTokens();
-      // window.location.href = ROUTES.LOGIN;
     }
-
     return Promise.reject(error);
   }
 );
