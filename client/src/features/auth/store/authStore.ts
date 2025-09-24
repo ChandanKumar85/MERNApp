@@ -41,12 +41,10 @@ export const useAuthStore = create<AuthState>()(
               const newToken = await refreshAccessToken();
               if (!newToken) {
                 clearTokens();
-                // window.location.reload();
               }
             }
           } catch {
             clearTokens();
-            // window.location.reload();
           }
         }
       },
@@ -56,7 +54,6 @@ export const useAuthStore = create<AuthState>()(
         const { refreshToken, setTokens, clearTokens } = get();
         if (!refreshToken) {
           clearTokens();
-          // window.location.reload();
           return null;
         }
         try {
@@ -69,10 +66,9 @@ export const useAuthStore = create<AuthState>()(
         } catch (error) {
           console.error('Failed to refresh token:', error);
           clearTokens();
-          // window.location.reload();
           return null;
         }
-      },
+      }
     }),
     {
       name: 'authStorage'
