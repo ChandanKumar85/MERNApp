@@ -6,6 +6,9 @@ const User = require('../models/user.model');
 const { GenerateToken, GenerateRefreshToken } = require('../utils/tokenGenerate');
 const { decrypt } = require('../utils/crypto');
 
+// Generate unique random ID
+const randomUId = crypto.randomUUID();
+
 // Create and Save a new User
 const registerUser = async (req, res) => {
   try {
@@ -85,8 +88,7 @@ const loginUser = async (req, res) => {
     }
 
     // Access token
-    const randomId = crypto.randomUUID();
-    const accessToken = GenerateToken({ id: user._id, randomId: randomId, role: user.role }, { expiresIn: process.env.ACCESS_TOKEN_EXPIRE_IN, issuer: process.env.APP_NAME });
+    const accessToken = GenerateToken({ id: user._id, randomId: randomUId, role: user.role }, { expiresIn: process.env.ACCESS_TOKEN_EXPIRE_IN, issuer: process.env.APP_NAME });
 
     // Refresh token
     const refreshToken = GenerateRefreshToken({ id: user._id }, { expiresIn: process.env.REFRESH_TOKEN_EXPIRE_IN, issuer: process.env.APP_NAME });
@@ -213,7 +215,7 @@ const refreshToken = async (req, res) => {
       });
     }
 
-    // Update user record with new access token + randomId
+    // Update user record with new access token + random ID
     await User.findByIdAndUpdate(id, {
       token: accessToken,
     });
@@ -251,11 +253,10 @@ const forgotPassword = async (req, res) => {
       return res.status(404).json({ status: 0, message: 'USER_NOT_FOUND' });
     }
 
-    // Generate unique random ID for reset
-    const randomId = crypto.randomUUID();
-    // Generate JWT with user ID + randomId
+    
+    // Generate JWT with user ID + random ID
     const accessToken = GenerateToken(
-      { id: String(checkUser._id), randomId },
+      { id: String(checkUser._id), randomUId },
       { expiresIn: process.env.GENERATE_TOKEN_EXPIREIN, issuer: process.env.APP_NAME }
     );
 
@@ -366,4 +367,4 @@ module.exports = {
   logout, 
   refreshToken, 
   resetPassword 
-}; // getUsers
+};
