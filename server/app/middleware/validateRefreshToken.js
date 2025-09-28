@@ -3,6 +3,9 @@ const crypto = require("crypto");
 const User = require('../models/user.model');
 const { GenerateToken } = require('../utils/tokenGenerate');
 
+// Generate unique random ID
+const randomUId = crypto.randomUUID();
+
 const validateRefreshToken = async (req, res, next) => {
   try {
     const refreshToken = req.body.refreshToken || req.headers['authorization'];
@@ -53,8 +56,7 @@ const validateRefreshToken = async (req, res, next) => {
         }
 
         // Access token
-        const randomId = crypto.randomUUID();
-        const accessToken = GenerateToken({ id: String(userData._id), randomId: randomId, role: userData.role }, { expiresIn: process.env.ACCESS_TOKEN_EXPIRE_IN, issuer: process.env.APP_NAME });
+        const accessToken = GenerateToken({ id: String(userData._id), randomId: randomUId, role: userData.role }, { expiresIn: process.env.ACCESS_TOKEN_EXPIRE_IN, issuer: process.env.APP_NAME });
         
         req.user = {
           id: String(userData._id),

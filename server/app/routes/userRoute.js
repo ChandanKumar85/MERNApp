@@ -7,14 +7,13 @@ const userRoute = express.Router();
 
 userRoute.post('/login', loginUser);// Login user
 userRoute.post('/register', validatePassword, registerUser);// Create user
-userRoute.delete('/user', validateToken, deleteUser); // Delete user
-userRoute.get('/user', validateToken, getUser); // Get users
 userRoute.post('/logout', validateToken, logout); // Get users
-userRoute.post('/refresh-token', validateRefreshToken, refreshToken);
-userRoute.post('/forgot-password', forgotPassword);
-userRoute.post('/reset-password/:token', resetPassword);
+userRoute.post('/refresh-token', validateRefreshToken, refreshToken); // Get refresh token
+userRoute.post('/forgot-password', forgotPassword); // forgot password
+userRoute.post('/reset-password/:token', resetPassword); // reset password
 
-// userRoute.get('/users', getUsers); // Get users
-// userRoute.patch('/update-password', validateToken, validatePassword, forgotPassword);
+// Get & Delete user
+userRoute.get('/user', validateToken, getUser);
+userRoute.delete('/user', validateToken, deleteUser);
 
 module.exports = userRoute;

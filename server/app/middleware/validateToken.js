@@ -62,7 +62,7 @@ const validateToken = async (req, res, next) => {
       });
     }
 
-    // Step 3: Compare randomId (request vs DB)
+    // Step 3: Compare random Id (request vs DB)
     if (decodedReq.randomId !== decodedDb.randomId) {
       return res.status(403).json({
         status: 0,
