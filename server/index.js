@@ -1,9 +1,9 @@
+require('dotenv').config(); // Load environment variables from .env file
 const express = require('express');
 const userRoute = require('./app/routes/userRoute');
 const connectDB = require('./app/config/db');
 var cors = require('cors')
 
-require('dotenv').config(); // Load environment variables from .env file
 const PORT = process.env.PORT || 5000; // Set the port from environment variable or default to 5000
 const app = express(); // Initialize Express app
 

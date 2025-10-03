@@ -4,7 +4,6 @@ const User = require('../models/user.model');
 const validateToken = async (req, res, next) => {
   try {
     const token = req.body.accessToken || req.headers['authorization'];
-    const uId = req.body.id;
 
     if (!token) {
       return res.status(401).json({
@@ -13,16 +12,11 @@ const validateToken = async (req, res, next) => {
       });
     }
 
-    // Handle "Bearer <token>"
-    const actualToken = token.startsWith('Bearer ')
-      ? token.slice(7).trim()
-      : token;
-
     // 🔹 Decode request token
-    let decodedReq;
+    let decodedToken;
     try {
-      decodedReq = jwt.decode(actualToken);
-      if (!decodedReq) throw new Error('FAILED_TO_DECODE_REQUEST_TOKEN');
+      decodedToken = jwt.decode(token);
+      if (!decodedToken) throw new Error('FAILED_TO_DECODE_REQUEST_TOKEN');
     } catch (err) {
       return res.status(401).json({
         status: 0,
@@ -31,9 +25,14 @@ const validateToken = async (req, res, next) => {
       });
     }
 
+    // Handle "Bearer <token>"
+    const actualToken = token.startsWith('Bearer ')
+      ? token.slice(7).trim()
+      : token;
+
     // Step 1: Check request token expiry
     const currentTime = Math.floor(Date.now() / 1000);
-    if (decodedReq.exp && decodedReq.exp < currentTime) {
+    if (decodedToken.exp && decodedToken.exp < currentTime) {
       return res.status(401).json({
         status: 0,
         message: 'NOT_MATCHED', // expired
@@ -41,7 +40,7 @@ const validateToken = async (req, res, next) => {
     }
 
     // Step 2: Fetch user from DB
-    const dbUser = await User.findById(uId);
+    const dbUser = await User.findById(decodedToken.id);
     if (!dbUser || !dbUser.token) {
       return res.status(401).json({
         status: 0,
@@ -49,21 +48,8 @@ const validateToken = async (req, res, next) => {
       });
     }
 
-    // 🔹 Decode DB token
-    let decodedDb;
-    try {
-      decodedDb = jwt.decode(dbUser.token);
-      if (!decodedDb) throw new Error('FAILED_TO_DECODE_DB_TOKEN');
-    } catch (err) {
-      return res.status(401).json({
-        status: 0,
-        message: 'INVALID_DB_TOKEN',
-        error: err.message,
-      });
-    }
-
     // Step 3: Compare random Id (request vs DB)
-    if (decodedReq.randomId !== decodedDb.randomId) {
+    if (decodedToken.randomId !== decodedToken.randomId) {
       return res.status(403).json({
         status: 0,
         message: 'TOKEN_MISMATCH',
@@ -77,9 +63,9 @@ const validateToken = async (req, res, next) => {
 
     // Attach user info
     req.user = {
-      id: uId,
-      randomId: decodedReq.randomId,
-      role: decodedReq.role,
+      id: decodedToken.id,
+      randomId: decodedToken.randomId,
+      role: decodedToken.role,
     };
 
     next();
