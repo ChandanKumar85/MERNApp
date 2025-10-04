@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema(
   {
@@ -9,6 +8,7 @@ const userSchema = new mongoose.Schema(
       minlength: 3,
       validate: {
         validator: (v) => /^[A-Za-z\s]+$/.test(v),
+        message: 'Name must contain only letters and spaces'
       },
     },
     email: {
@@ -18,6 +18,7 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       validate: {
         validator: (v) => /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(v),
+        message: 'Invalid email format'
       },
     },
     phone: {
@@ -26,6 +27,7 @@ const userSchema = new mongoose.Schema(
       minlength: 10,
       validate: {
         validator: (v) => /^[0-9]{10}$/.test(v),
+        message: 'Phone must be 10 digits'
       },
     },
     password: {
@@ -33,11 +35,15 @@ const userSchema = new mongoose.Schema(
       required: true, 
       minlength: 8 
     },
-    // confirmPassword: { type: String, required: true },
-    role: { type: String, default: 'user', enum: ['user', 'admin', 'super-admin'] },
-    token: {type: String, default: ''},
-    refreshToken: {type: String, default: ''},
-    createdAt: { type: Date, default: Date.now },
+    role: { 
+      type: String, 
+      default: 'user', 
+      enum: ['user', 'admin', 'super-admin'] 
+    },
+    token: { type: String, default: '' },
+    refreshToken: { type: String, default: '' },
+    randomId: { type: String, default: '' },
+    isDeleted: { type: Boolean, default: false }
   },
   { timestamps: true }
 );

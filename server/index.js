@@ -1,15 +1,15 @@
-require('dotenv').config(); // Load environment variables from .env file
+require('dotenv').config();
 const express = require('express');
 const userRoute = require('./app/routes/userRoute');
 const connectDB = require('./app/config/db');
-var cors = require('cors')
+const cors = require('cors');
 
-const PORT = process.env.PORT || 5000; // Set the port from environment variable or default to 5000
-const app = express(); // Initialize Express app
+const PORT = process.env.PORT || 5000;
+const app = express();
 
-app.use(express.json()); // Middleware to parse JSON requests
-app.use(cors()) // Enable CORS for all routes
-app.use('/api/v1/auth', userRoute) // Auth Routes
+app.use(express.json());
+app.use(cors());
+app.use('/api/v1/auth', userRoute);
 
 // Connect to DB first, then start server
 connectDB().then(() => {

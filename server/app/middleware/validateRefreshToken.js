@@ -3,9 +3,6 @@ const crypto = require("crypto");
 const User = require('../models/user.model');
 const { GenerateToken } = require('../utils/tokenGenerate');
 
-// Generate unique random ID
-const randomUId = crypto.randomUUID();
-
 const validateRefreshToken = async (req, res, next) => {
   try {
     const refreshToken = req.body.refreshToken || req.headers['authorization'];
@@ -55,19 +52,27 @@ const validateRefreshToken = async (req, res, next) => {
           });
         }
 
-        // Access token
-        const accessToken = GenerateToken({ id: String(userData._id), randomId: randomUId, role: userData.role }, { expiresIn: process.env.ACCESS_TOKEN_EXPIRE_IN, issuer: process.env.APP_NAME });
+        // 🔹 FIXED: Generate new random ID for new access token
+        const randomUId = crypto.randomUUID();
+
+        // Generate new access token
+        const accessToken = GenerateToken(
+          { id: String(userData._id), randomId: randomUId, role: userData.role }, 
+          { expiresIn: process.env.ACCESS_TOKEN_EXPIRE_IN, issuer: process.env.APP_NAME }
+        );
         
         req.user = {
           id: String(userData._id),
           accessToken: accessToken,
-          refreshToken: refreshToken
+          refreshToken: refreshToken,
+          randomId: randomUId  // Pass to controller to update DB
         };
 
         next();
       }
     );
   } catch (err) {
+    console.error("Refresh token validation error:", err);
     return res.status(401).json({
       status: 0,
       message: 'INVALID_REFRESH_TOKEN',

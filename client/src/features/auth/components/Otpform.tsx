@@ -1,7 +1,6 @@
-import React from 'react';
 import { useForm } from 'react-hook-form';
 
-const Otpform = () => {
+const OTPForm = () => {
     const {
         register,
         handleSubmit,
@@ -44,4 +43,4 @@ const Otpform = () => {
   );
 };
 
-export default Otpform;
+export default OTPForm;

@@ -11,7 +11,7 @@ interface PasswordUpdateFormData {
   confirmPassword: string;
 }
 
-const PasswordUpdate = (props: any) => {
+const UpdatePasswordForm = (props: any) => {
     const navigate = useNavigate();
     const {
         register,
@@ -128,4 +128,4 @@ const PasswordUpdate = (props: any) => {
   )
 }
 
-export default PasswordUpdate
+export default UpdatePasswordForm

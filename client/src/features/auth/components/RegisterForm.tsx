@@ -26,7 +26,7 @@ const RegisterForm = () => {
         setTimeout(() => {
           navigate(`${ROUTES.LOGIN}`)
         }, 2000);
-      };
+      }
     }
   });
 
@@ -36,11 +36,28 @@ const RegisterForm = () => {
     mutate({...data, password: encryptedPassword, confirmPassword: encryptedConfirmPassword});
   };
 
+  const getErrorMessage = () => {
+    if (
+      error &&
+      'response' in error &&
+      error.response &&
+      typeof error.response === 'object' &&
+      error.response !== null &&
+      'data' in error.response
+    ) {
+      const responseData = (error.response as { data?: { message?: string } }).data;
+      if (responseData && responseData.message === 'USER_ALREADY_EXISTS') {
+        return 'User already exists. Please reset your password.';
+      }
+    }
+    return 'Registration failed. Please try again.';
+  };
+
   return (
     <>
       {isError && (
         <div className="mb-4 text-red-600 bg-red-50 p-3 rounded-md">
-          {error instanceof Error && 'Registration failed. Please try again.'}
+          {getErrorMessage()}
         </div>
       )}
       {isSuccess && (
@@ -73,7 +90,6 @@ const RegisterForm = () => {
                 'User Name must contain only letters and spaces',
             })}
             className="w-full rounded-xl border border-gray-300 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 outline-none px-3 py-2"
-            required
           />
           {errors.name && (
             <p className="text-sm text-red-600 mt-1">{errors.name.message}</p>
@@ -101,7 +117,6 @@ const RegisterForm = () => {
               },
             })}
             className="w-full rounded-xl border border-gray-300 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 outline-none px-3 py-2"
-            required
           />
           {errors.email && (
             <p className="text-sm text-red-600 mt-1">{errors.email.message}</p>
@@ -127,11 +142,8 @@ const RegisterForm = () => {
                 value: /^\d{10}$/,
                 message: 'Phone number must be 10 digits',
               },
-              minLength: { value: 10, message: 'Phone number must be 10 digits' },
-              maxLength: { value: 10, message: 'Phone number must be 10 digits' },
             })}
             className="w-full rounded-xl border border-gray-300 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 outline-none px-3 py-2"
-            required
           />
           {errors.phone && (
             <p className="text-sm text-red-600 mt-1">{errors.phone.message}</p>
@@ -165,7 +177,6 @@ const RegisterForm = () => {
               },
             })}
             className="w-full rounded-xl border border-gray-300 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 outline-none px-3 py-2"
-            required
           />
           {errors.password && (
             <p className="text-sm text-red-600 mt-1">{errors.password.message}</p>
@@ -191,7 +202,6 @@ const RegisterForm = () => {
                 value === watch('password') || 'Passwords do not match',
             })}
             className="w-full rounded-xl border border-gray-300 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 outline-none px-3 py-2"
-            required
           />
           {errors.confirmPassword && (
             <p className="text-sm text-red-600 mt-1">
@@ -206,12 +216,14 @@ const RegisterForm = () => {
           disabled={isPending}
           className="w-full mt-2 inline-flex items-center cursor-pointer justify-center rounded-2xl bg-gray-900 px-4 py-2.5 text-white font-medium shadow-sm hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900"
         >
-          {isPending ? (<svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" aria-hidden="true">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
-            <path className="opacity-75" fill="currentColor"
-              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-          </svg>) : (<span>Register</span>)}
-          
+          {isPending ? (
+            <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" aria-hidden="true">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+            </svg>
+          ) : (
+            <span>Register</span>
+          )}
         </button>
       </form>
     </>
