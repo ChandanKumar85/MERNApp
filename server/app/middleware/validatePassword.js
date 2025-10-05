@@ -48,6 +48,7 @@ const validatePassword = (req, res, next) => {
 
     next();
   } catch (error) {
+    console.error("Password validation error:", error);
     return res.status(500).json({
       status: 0,
       message: "PASSWORD_VALIDATION_ERROR",

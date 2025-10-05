@@ -1,15 +1,12 @@
 const jwt = require('jsonwebtoken');
 const crypto = require("crypto");
 const User = require('../models/user.model');
-const { GenerateToken } = require('../utils/tokenGenerate');
-
-// Generate unique random ID
-const randomUId = crypto.randomUUID();
+const { GenerateToken, GenerateRefreshToken } = require('../utils/tokenGenerate');
 
 const validateRefreshToken = async (req, res, next) => {
   try {
     const refreshToken = req.body.refreshToken || req.headers['authorization'];
-
+    
     if (!refreshToken) {
       return res.status(401).json({
         status: 0,
@@ -22,6 +19,7 @@ const validateRefreshToken = async (req, res, next) => {
       refreshToken,
       process.env.REFRESH_TOKEN_JWT_SECRET,
       async (err, decoded) => {
+        
         const { id } = decoded || {};
         if (err) {
           return res.status(401).json({
@@ -39,11 +37,11 @@ const validateRefreshToken = async (req, res, next) => {
           });
         }
 
-        if (!userData.refreshToken || !userData.token) {
+        if (decoded.refreshTokenId !== userData.refreshTokenId) {
           return res.status(403).json({
             status: 0,
             message: "USER_LOGGED_OUT",
-          });
+          })
         }
 
         // (Optional) Check if refresh token is expired manually
@@ -54,20 +52,34 @@ const validateRefreshToken = async (req, res, next) => {
             message: "REFRESH_TOKEN_EXPIRED",
           });
         }
-
-        // Access token
-        const accessToken = GenerateToken({ id: String(userData._id), randomId: randomUId, role: userData.role }, { expiresIn: process.env.ACCESS_TOKEN_EXPIRE_IN, issuer: process.env.APP_NAME });
+        
+        // Generate new random ID for new access token
+        const tokenId = crypto.randomUUID();
+        const accessToken = GenerateToken(
+          { id: String(userData._id), tokenId: tokenId, role: userData.role }, 
+          { expiresIn: process.env.ACCESS_TOKEN_EXPIRE_IN, issuer: process.env.APP_NAME }
+        );
+        
+        // Refresh token
+        const refreshTokenId = crypto.randomUUID();
+        const refreshToken = GenerateRefreshToken(
+          { id: userData._id, refreshTokenId: refreshTokenId }, 
+          { expiresIn: process.env.REFRESH_TOKEN_EXPIRE_IN, issuer: process.env.APP_NAME }
+        );
         
         req.user = {
           id: String(userData._id),
           accessToken: accessToken,
-          refreshToken: refreshToken
+          refreshToken: refreshToken,
+          tokenId,  // Pass to controller to update DB
+          refreshTokenId
         };
-
+        
         next();
       }
     );
   } catch (err) {
+    console.error("Refresh token validation error:", err);
     return res.status(401).json({
       status: 0,
       message: 'INVALID_REFRESH_TOKEN',

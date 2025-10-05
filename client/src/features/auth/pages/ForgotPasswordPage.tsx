@@ -3,8 +3,8 @@ import { ROUTES } from '../../../routes/routePaths';
 import { lazy, useEffect, useState } from 'react';
 
 const ForgotPasswordForm = lazy(() => import('../components/ForgotPasswordForm'));
-const Otpform = lazy(() => import('../components/Otpform'));
-const PasswordUpdate = lazy(() => import('../components/PasswordUpdate'));
+const OTPForm = lazy(() => import('../components/OTPForm'));
+const UpdatePasswordForm = lazy(() => import('../components/UpdatePasswordForm'));
 
 const ForgotPasswordPage = () => {
   const [searchParams] = useSearchParams();
@@ -32,9 +32,9 @@ const ForgotPasswordPage = () => {
           {step === 'forgot' ? (
             <ForgotPasswordForm />
           ) : step === 'otp' ? (
-            <Otpform />
+            <OTPForm />
           ) : (
-            <PasswordUpdate resetToken={resetToken} />
+            <UpdatePasswordForm resetToken={resetToken} />
           )}
           
           <p className="text-xs text-gray-500 mt-4">We'll send you a link to reset your password. Make sure to check your inbox.</p>

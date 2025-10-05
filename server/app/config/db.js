@@ -1,9 +1,18 @@
 const mongoose = require('mongoose');
-require('dotenv').config();
+
+if (!process.env.DATABASE_URL) {
+  console.error("DATABASE_URL is not set in environment variables.");
+  process.exit(1);
+}
+
+if (!process.env.DATABASE_PASSWORD) {
+  console.error("DATABASE_PASSWORD is not set in environment variables.");
+  process.exit(1);
+}
 
 const DB_CRID = process.env.DATABASE_URL.replace(
-    '<PASSWORD>', process.env.DATABASE_PASSWORD
-    // encodeURIComponent()
+  '<PASSWORD>',
+  encodeURIComponent(process.env.DATABASE_PASSWORD)
 );
 
 const connectDB = async () => {

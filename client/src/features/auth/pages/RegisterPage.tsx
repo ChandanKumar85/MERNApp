@@ -18,6 +18,11 @@ const RegisterPage = () => {
             Sign in
           </Link>
         </p>
+        <p className="text-center text-sm text-gray-600 mt-4">
+          <Link to={ROUTES.FORGOT_PASSWORD} className="font-medium text-gray-900 hover:underline">
+            Reset Password?
+          </Link>
+        </p>
       </div>
     </div>
   );

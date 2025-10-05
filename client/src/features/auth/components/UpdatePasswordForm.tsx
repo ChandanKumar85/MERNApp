@@ -11,8 +11,9 @@ interface PasswordUpdateFormData {
   confirmPassword: string;
 }
 
-const PasswordUpdate = (props: any) => {
+const UpdatePasswordForm = (props: any) => {
     const navigate = useNavigate();
+
     const {
         register,
         handleSubmit,
@@ -20,9 +21,13 @@ const PasswordUpdate = (props: any) => {
         formState: { errors },
     } = useForm<PasswordUpdateFormData>();
 
-    const { mutate, isPending, isError, isSuccess, error } = useMutation({
+    const { mutate, isPending, isError, isSuccess, error, data } = useMutation({
       mutationFn: resetPassword,
       onSuccess: (res) => {
+        if (res.message === 'SAME_PASSWORD_OLD_ONE') {
+          return;
+        }
+
         if (res.message === 'PASSWORD_RESET_SUCCESSFUL') {
           setTimeout(() => {
             navigate(`${ROUTES.LOGIN}`);
@@ -43,13 +48,16 @@ const PasswordUpdate = (props: any) => {
       const encryptedConfirmPassword = CryptoJS.AES.encrypt(data.confirmPassword, SECRET_KEY).toString();
       mutate({ ...data, password: encryptedPassword, confirmPassword: encryptedConfirmPassword, token: props.resetToken });
     };
+    
   return (
     <>
       {isError && (
         <div className="mb-4 text-red-600 bg-red-50 p-3 rounded-md">
-          {error instanceof Error && 'Session time out. Please try again.'}
+          {error?.response?.data?.message === 'TOKEN_EXPIRED' && 'Session time out. Please try again.'}
+          {error?.response?.data?.message === 'SAME_PASSWORD_OLD_ONE' && 'Please type a different password from your previous one.'}
         </div>
       )}
+      
       {isSuccess && (
         <div className="mb-4 text-green-600 bg-green-50 p-3 rounded-md">
           Password has been successfully reset. You can now log in with your new password.
@@ -128,4 +136,4 @@ const PasswordUpdate = (props: any) => {
   )
 }
 
-export default PasswordUpdate
+export default UpdatePasswordForm

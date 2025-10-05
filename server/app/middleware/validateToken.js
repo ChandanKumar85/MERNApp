@@ -4,11 +4,11 @@ const User = require('../models/user.model');
 const validateToken = async (req, res, next) => {
   try {
     const token = req.body.accessToken || req.headers['authorization'];
-    const uId = req.body.id;
 
+    // 🔹 FIXED: Status should be 0 for error
     if (!token) {
       return res.status(401).json({
-        status: 1,
+        status: 0,
         message: 'ACCESS_DENIED',
       });
     }
@@ -18,72 +18,53 @@ const validateToken = async (req, res, next) => {
       ? token.slice(7).trim()
       : token;
 
-    // 🔹 Decode request token
-    let decodedReq;
+    // 🔹 FIXED: Verify token first to get decoded data
+    let clientToken;
     try {
-      decodedReq = jwt.decode(actualToken);
-      if (!decodedReq) throw new Error('FAILED_TO_DECODE_REQUEST_TOKEN');
+      clientToken = jwt.verify(actualToken, process.env.ACCESS_JWT_SECRET, {
+        issuer: process.env.APP_NAME,
+      });
     } catch (err) {
+      if (err.name === 'TokenExpiredError') {
+        return res.status(401).json({
+          status: 0,
+          message: 'TOKEN_EXPIRED',
+        });
+      }
       return res.status(401).json({
         status: 0,
-        message: 'INVALID_REQUEST_TOKEN',
+        message: 'INVALID_TOKEN',
         error: err.message,
       });
     }
-
-    // Step 1: Check request token expiry
-    const currentTime = Math.floor(Date.now() / 1000);
-    if (decodedReq.exp && decodedReq.exp < currentTime) {
+    
+    // Fetch user from DB
+    const dbUser = await User.findById(clientToken.id);
+    if (!dbUser || !dbUser.tokenId) {
       return res.status(401).json({
         status: 0,
-        message: 'NOT_MATCHED', // expired
+        message: 'USER_NOT_FOUND',
       });
     }
 
-    // Step 2: Fetch user from DB
-    const dbUser = await User.findById(uId);
-    if (!dbUser || !dbUser.token) {
-      return res.status(401).json({
-        status: 0,
-        message: 'USER_NOT_FOUND_OR_NO_TOKEN',
-      });
-    }
-
-    // 🔹 Decode DB token
-    let decodedDb;
-    try {
-      decodedDb = jwt.decode(dbUser.token);
-      if (!decodedDb) throw new Error('FAILED_TO_DECODE_DB_TOKEN');
-    } catch (err) {
-      return res.status(401).json({
-        status: 0,
-        message: 'INVALID_DB_TOKEN',
-        error: err.message,
-      });
-    }
-
-    // Step 3: Compare random Id (request vs DB)
-    if (decodedReq.randomId !== decodedDb.randomId) {
+    // Compare random ID from token with stored randomId in DB
+    if (clientToken.tokenId !== dbUser.tokenId) {
       return res.status(403).json({
         status: 0,
-        message: 'TOKEN_MISMATCH',
+        message: 'TOKEN_MISMATCH_SESSION_INVALID',
       });
     }
-
-    // Step 4: Verify request token signature
-    jwt.verify(actualToken, process.env.ACCESS_JWT_SECRET, {
-      issuer: process.env.APP_NAME,
-    });
 
     // Attach user info
     req.user = {
-      id: uId,
-      randomId: decodedReq.randomId,
-      role: decodedReq.role,
+      id: clientToken.id,
+      tokenId: clientToken.tokenId,
+      role: clientToken.role,
     };
 
     next();
   } catch (err) {
+    console.error("Token validation error:", err);
     return res.status(401).json({
       status: 0,
       message: 'INVALID_TOKEN',
