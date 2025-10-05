@@ -4,10 +4,9 @@ const User = require('../../models/user.model');
 const logout = async (req, res) => {
   try {
     const id = req.user.id;
-    // Also unset randomId
-    const user = await User.findByIdAndUpdate(
-      id,
-      { $unset: { token: 1, refreshToken: 1, randomId: 1 } },
+    // Also unset Token ID & Refresh Token ID
+    const user = await User.findByIdAndUpdate( id,
+      { $unset: { tokenId: 1, refreshTokenId: 1 } },
       { new: true }
     );
 

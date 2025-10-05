@@ -52,28 +52,24 @@ const loginUser = async (req, res) => {
       });
     }
 
-    // Generate unique random ID for this session
-    const randomUId = crypto.randomUUID();
-
-    // Access token with random ID
+    // Generate unique token Id for this session // Access token with token ID
+    const tokenId = crypto.randomUUID();
     const accessToken = GenerateToken(
-      { id: user._id, randomId: randomUId, role: user.role }, 
+      { id: user._id, tokenId: tokenId, role: user.role }, 
       { expiresIn: process.env.ACCESS_TOKEN_EXPIRE_IN, issuer: process.env.APP_NAME }
     );
 
     // Refresh token
+    const refreshTokenId = crypto.randomUUID();
     const refreshToken = GenerateRefreshToken(
-      { id: user._id }, 
+      { id: user._id, refreshTokenId: refreshTokenId }, 
       { expiresIn: process.env.REFRESH_TOKEN_EXPIRE_IN, issuer: process.env.APP_NAME }
     );
 
     // Store token AND randomId in db for validation
-    await User.findByIdAndUpdate(
-      String(user._id), 
-      { 
-        token: accessToken, 
-        refreshToken: refreshToken,
-        randomId: randomUId
+    await User.findByIdAndUpdate(String(user._id), { 
+        refreshTokenId,
+        tokenId
       }
     );
 

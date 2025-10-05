@@ -18,14 +18,18 @@ const forgotPassword = async (req, res) => {
       return res.status(404).json({ status: 0, message: 'USER_NOT_FOUND' });
     }
 
-    // Generate unique random ID for reset token
-    const randomUId = crypto.randomUUID();
+    // Generate unique token Id for reset token
+    const passwordId = crypto.randomUUID();
     
-    // Generate JWT with user ID + random ID
+    // Generate JWT with user ID + token Id
     const accessToken = GenerateToken(
-      { id: String(checkUser._id), randomId: randomUId },
+      { id: String(checkUser._id), passwordId: passwordId, issuedAt: new Date().toISOString() },
       { expiresIn: process.env.GENERATE_TOKEN_EXPIREIN, issuer: process.env.APP_NAME }
     );
+
+    await User.findByIdAndUpdate(String(checkUser._id), { 
+      passwordId: passwordId 
+    })
 
     // Configure transporter
     const transporter = nodemailer.createTransport({

@@ -40,10 +40,10 @@ const userSchema = new mongoose.Schema(
       default: 'user', 
       enum: ['user', 'admin', 'super-admin'] 
     },
-    token: { type: String, default: '' },
-    refreshToken: { type: String, default: '' },
-    randomId: { type: String, default: '' },
-    isDeleted: { type: Boolean, default: false }
+    tokenId: { type: String, default: '' },
+    refreshTokenId: { type: String, default: '' },
+    isDeleted: { type: Boolean, default: false },
+    passwordId: { type: String, default: '' }
   },
   { timestamps: true }
 );

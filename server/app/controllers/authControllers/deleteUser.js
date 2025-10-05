@@ -4,9 +4,10 @@ const User = require('../../models/user.model');
 const deleteUser = async (req, res) => {
   try {
     const id = req.user.id;
+    const deletedUser = await User.findByIdAndUpdate( id, 
+      { isDeleted: true, tokenId: '', refreshTokenId: '' }
+    );
 
-    const deletedUser = await User.findByIdAndUpdate(id, { isDeleted: true });
-    console.log(deletedUser)
     if (!deletedUser) {
       return res.status(404).json({
         status: 0,

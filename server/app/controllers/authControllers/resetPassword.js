@@ -52,12 +52,29 @@ const resetPassword = async (req, res) => {
       return res.status(404).json({ status: 0, message: 'USER_NOT_FOUND' });
     }
 
+    if(decoded.passwordId !== user.passwordId) {
+      return res.status(404).json({ 
+        status: 0, 
+        message: 'TOKEN_EXPIRED' 
+      });
+    }
+
+    const isSamePassword = await bcrypt.compare(plainPassword, user.password);
+    if (isSamePassword) {
+      return res.status(400).json({
+        status: 0,
+        message: 'SAME_PASSWORD_OLD_ONE',
+      });
+    }
+    
     // Hash new password
     const newHashedPassword = await bcrypt.hash(plainPassword, 10);
     if(user.isDeleted === true) {
       user.isDeleted = false;
     }
     user.password = newHashedPassword;
+    user.passwordId = '';
+
     await user.save();
 
     return res.status(200).json({
