@@ -49,29 +49,67 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      // Refresh access token using refreshToken
+      // ✅ Refresh access token using refreshToken (updated for better error handling)
       refreshAccessToken: async () => {
         const { refreshToken, setTokens, clearTokens } = get();
+
+        // 🚨 Early exit if refreshToken missing
         if (!refreshToken) {
           clearTokens();
           return null;
         }
+
         try {
+          // ✅ API call to refresh token
           const response = await httpClient.post(`/auth${ROUTES.REFRESH_TOKEN}`, {
             refreshToken,
           });
-          const { accessToken: newAccessToken, refreshToken: newRefreshToken, id: newId } = response.data;
+
+         // ✅ Handle refresh token expired case explicitly
+         if (response.data?.message === 'REFRESH_TOKEN_EXPIRED') {
+           clearTokens();
+           window.location.href = '/login';
+           return null;
+         }
+
+         // ✅ Extract tokens safely
+          const {
+            accessToken: newAccessToken,
+            refreshToken: newRefreshToken,
+            id: newId,
+          } = response.data;
+
+         // ✅ Guard against empty response or missing tokens
+         if (!newAccessToken || !newRefreshToken) {
+           clearTokens();
+           return null;
+         }
+
+         // ✅ Persist new tokens
           setTokens(newAccessToken, newRefreshToken, newId);
           return newAccessToken;
-        } catch (error) {
+        } catch (error: any) {
           console.error('Failed to refresh token:', error);
+
+         // ✅ Handle backend "refresh token expired" response
+         if (error?.response?.data?.message === 'REFRESH_TOKEN_EXPIRED') {
+           clearTokens();
+           window.location.href = '/login';
+           return null;
+         }
+
           clearTokens();
           return null;
         }
-      }
+      },
     }),
     {
-      name: 'authStorage'
+      name: 'authStorage',
+      partialize: (state) => ({
+        accessToken: state.accessToken,
+        refreshToken: state.refreshToken,
+        id: state.id,
+      }),
     }
   )
 );

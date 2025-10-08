@@ -24,7 +24,7 @@ const forgotPassword = async (req, res) => {
     // Generate JWT with user ID + token Id
     const accessToken = GenerateToken(
       { id: String(checkUser._id), passwordId: passwordId, issuedAt: new Date().toISOString() },
-      { expiresIn: process.env.GENERATE_TOKEN_EXPIREIN, issuer: process.env.APP_NAME }
+      { expiresIn: process.env.CHANGE_PASSWORD_TOKEN_EXPIREIN, issuer: process.env.APP_NAME }
     );
 
     await User.findByIdAndUpdate(String(checkUser._id), { 
@@ -108,7 +108,7 @@ const forgotPassword = async (req, res) => {
                       <!-- Warning Box -->
                       <div style="padding: 15px; background-color: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px; margin-bottom: 20px;">
                         <p style="margin: 0; font-size: 14px; color: #856404;">
-                          <strong>⚠️ Important:</strong> This link will expire in <strong>${process.env.GENERATE_TOKEN_EXPIREIN}</strong>.
+                          <strong>⚠️ Important:</strong> This link will expire in <strong>${process.env.CHANGE_PASSWORD_TOKEN_EXPIREIN}</strong>.
                         </p>
                       </div>
                       
@@ -152,7 +152,7 @@ const forgotPassword = async (req, res) => {
         </body>
         </html>
       `,
-      text: `Hi ${checkUser.name},\n\nWe received a request to reset your password for your ${process.env.APP_NAME} account.\n\nClick the link below to reset your password:\n${resetLink}\n\n⚠️ Important: This link will expire in ${process.env.GENERATE_TOKEN_EXPIREIN}.\n\nIf you didn't request this password reset, please ignore this email.\n\nBest regards,\n${process.env.APP_NAME} Team`,
+      text: `Hi ${checkUser.name},\n\nWe received a request to reset your password for your ${process.env.APP_NAME} account.\n\nClick the link below to reset your password:\n${resetLink}\n\n⚠️ Important: This link will expire in ${process.env.CHANGE_PASSWORD_TOKEN_EXPIREIN}.\n\nIf you didn't request this password reset, please ignore this email.\n\nBest regards,\n${process.env.APP_NAME} Team`,
     };
 
     await transporter.sendMail(mailOptions);
